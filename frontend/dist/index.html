@@ -1,0 +1,499 @@
+<!DOCTYPE html>
+<html lang="en" class="dark">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>🎬 CineOps Studio: Agentic Cinema Platform</title>
+  <!-- Tailwind CSS & Lucide Icons -->
+  <script src="https://cdn.tailwindcss.com"></script>
+  <script src="https://unpkg.com/lucide@latest"></script>
+  <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+  <script>
+    tailwind.config = {
+      darkMode: 'class',
+      theme: {
+        extend: {
+          colors: {
+            studio: {
+              950: '#070A11',
+              900: '#0E131F',
+              800: '#172033',
+              700: '#23304B'
+            },
+            hollywood: {
+              amber: '#F59E0B',
+              gold: '#FBBF24',
+              cyan: '#06B6D4',
+              emerald: '#10B981',
+              crimson: '#EF4444'
+            }
+          },
+          fontFamily: {
+            mono: ['ui-monospace', 'SFMono-Regular', 'Menlo', 'Monaco', 'Consolas', 'monospace']
+          }
+        }
+      }
+    }
+  </script>
+  <style>
+    /* Clapperboard Pattern */
+    .clapperboard-stripes {
+      background: repeating-linear-gradient(
+        45deg,
+        #1E293B,
+        #1E293B 12px,
+        #0F172A 12px,
+        #0F172A 24px
+      );
+    }
+    /* Pulse glow */
+    @keyframes studio-pulse {
+      0%, 100% { opacity: 1; transform: scale(1); }
+      50% { opacity: 0.6; transform: scale(1.05); }
+    }
+    .live-pulse {
+      animation: studio-pulse 2s infinite ease-in-out;
+    }
+    /* Custom Scrollbar */
+    ::-webkit-scrollbar { width: 6px; height: 6px; }
+    ::-webkit-scrollbar-track { background: #0E131F; }
+    ::-webkit-scrollbar-thumb { background: #23304B; border-radius: 3px; }
+    ::-webkit-scrollbar-thumb:hover { background: #F59E0B; }
+  </style>
+</head>
+<body class="bg-studio-950 text-slate-100 font-sans min-h-screen flex flex-col selection:bg-amber-500 selection:text-black">
+
+  <!-- TOP HEADER / CLAPPERBOARD SLATE -->
+  <header class="border-b border-slate-800 bg-studio-900/90 backdrop-blur sticky top-0 z-50">
+    <div class="h-2 clapperboard-stripes w-full"></div>
+    <div class="max-w-7xl mx-auto px-4 py-3 flex flex-wrap items-center justify-between gap-4">
+      
+      <!-- Brand & Title -->
+      <div class="flex items-center space-x-3">
+        <div class="p-2 bg-amber-500/10 border border-amber-500/30 rounded-lg text-amber-400">
+          <i data-lucide="clapperboard" class="w-6 h-6"></i>
+        </div>
+        <div>
+          <div class="flex items-center space-x-2">
+            <h1 class="text-lg font-bold tracking-wider text-slate-50 uppercase flex items-center gap-2">
+              CineOps Studio <span class="text-xs px-2 py-0.5 rounded bg-amber-500/20 text-amber-400 border border-amber-500/30 font-mono">v1.0.0</span>
+            </h1>
+            <span class="flex items-center gap-1.5 px-2.5 py-0.5 rounded-full text-xs font-mono font-semibold bg-emerald-500/10 text-emerald-400 border border-emerald-500/30">
+              <span class="w-2 h-2 rounded-full bg-emerald-400 live-pulse"></span>
+              <span id="system-status-text">STUDIO ONLINE</span>
+            </span>
+          </div>
+          <p class="text-xs text-slate-400 font-mono">Google Cloud Agentic Cinema • Grafana Cloud MCP Track</p>
+        </div>
+      </div>
+
+      <!-- Controls & Triggers -->
+      <div class="flex items-center space-x-3">
+        <select id="scenario-select" class="bg-studio-800 border border-slate-700 text-xs rounded-lg px-3 py-2 text-slate-200 focus:outline-none focus:border-amber-500 font-mono">
+          <option value="microservice_rescue">🎬 Scene A: Microservice Snowball & Auto-Healing</option>
+          <option value="agent_observability">🎬 Scene B: AI Agent Fleet Meta-Observability</option>
+        </select>
+
+        <select id="mode-select" class="bg-studio-800 border border-slate-700 text-xs rounded-lg px-3 py-2 text-slate-200 focus:outline-none focus:border-amber-500 font-mono">
+          <option value="replay">🎞️ Deterministic Replay (100% Stable)</option>
+          <option value="live">☁️ Live Gemini + Grafana Cloud</option>
+        </select>
+
+        <button id="btn-action" onclick="triggerProduction()" class="flex items-center space-x-2 px-4 py-2 bg-gradient-to-r from-amber-500 to-amber-600 hover:from-amber-400 hover:to-amber-500 text-slate-950 font-bold text-xs uppercase tracking-wider rounded-lg shadow-lg shadow-amber-500/20 transition-all active:scale-95">
+          <i data-lucide="play" class="w-4 h-4 fill-current"></i>
+          <span>ACTION! (Start Take)</span>
+        </button>
+      </div>
+
+    </div>
+  </header>
+
+  <!-- MAIN PRODUCTION WORKSPACE -->
+  <main class="flex-1 max-w-7xl w-full mx-auto p-4 grid grid-cols-1 lg:grid-cols-12 gap-4">
+    
+    <!-- LEFT SIDEBAR: CAST & CREW AGENTS (3 Cols) -->
+    <aside class="lg:col-span-3 space-y-4">
+      
+      <!-- Slate Info Card -->
+      <div class="bg-studio-900 border border-slate-800 rounded-xl p-4 space-y-3">
+        <div class="flex items-center justify-between border-b border-slate-800 pb-2">
+          <span class="text-xs font-mono text-slate-400 uppercase tracking-wider">Production Slate</span>
+          <span id="slate-id" class="text-xs font-mono text-amber-400 font-bold">#READY-00</span>
+        </div>
+        <div class="grid grid-cols-2 gap-2 text-xs font-mono">
+          <div class="bg-studio-800/60 p-2 rounded border border-slate-800">
+            <div class="text-slate-500">SCENE</div>
+            <div id="slate-scene-num" class="text-slate-200 font-bold text-sm">--</div>
+          </div>
+          <div class="bg-studio-800/60 p-2 rounded border border-slate-800">
+            <div class="text-slate-500">TAKE</div>
+            <div id="slate-take-num" class="text-slate-200 font-bold text-sm">#1</div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Agent Crew Hierarchy -->
+      <div class="bg-studio-900 border border-slate-800 rounded-xl p-4 space-y-3">
+        <h3 class="text-xs font-mono text-slate-400 uppercase tracking-wider flex items-center justify-between">
+          <span>Agent Crew (剧组状态)</span>
+          <span class="text-[10px] text-slate-500">3 Active</span>
+        </h3>
+
+        <!-- Director Agent -->
+        <div id="agent-director" class="p-3 bg-studio-800/40 border border-slate-800 rounded-lg transition-all">
+          <div class="flex items-center justify-between">
+            <div class="flex items-center space-x-2">
+              <span class="text-base">🎬</span>
+              <div>
+                <div class="text-xs font-bold text-slate-200">Director Agent</div>
+                <div class="text-[10px] text-slate-400 font-mono">Gemini 2.5 Pro (Supervisor)</div>
+              </div>
+            </div>
+            <span class="status-dot w-2 h-2 rounded-full bg-slate-600"></span>
+          </div>
+        </div>
+
+        <!-- Observability Producer -->
+        <div id="agent-obs" class="p-3 bg-studio-800/40 border border-slate-800 rounded-lg transition-all">
+          <div class="flex items-center justify-between">
+            <div class="flex items-center space-x-2">
+              <span class="text-base">📊</span>
+              <div>
+                <div class="text-xs font-bold text-slate-200">Obs Producer</div>
+                <div class="text-[10px] text-slate-400 font-mono">Grafana MCP Telemetry</div>
+              </div>
+            </div>
+            <span class="status-dot w-2 h-2 rounded-full bg-slate-600"></span>
+          </div>
+        </div>
+
+        <!-- Studio Head -->
+        <div id="agent-head" class="p-3 bg-studio-800/40 border border-slate-800 rounded-lg transition-all">
+          <div class="flex items-center justify-between">
+            <div class="flex items-center space-x-2">
+              <span class="text-base">🛡️</span>
+              <div>
+                <div class="text-xs font-bold text-slate-200">Studio Head</div>
+                <div class="text-[10px] text-slate-400 font-mono">Safety & IAM Governance</div>
+              </div>
+            </div>
+            <span class="status-dot w-2 h-2 rounded-full bg-slate-600"></span>
+          </div>
+        </div>
+
+      </div>
+
+      <!-- Quick Metrics Telemetry Card -->
+      <div class="bg-studio-900 border border-slate-800 rounded-xl p-4 space-y-2">
+        <span class="text-xs font-mono text-slate-400 uppercase tracking-wider">Grafana Live Stack</span>
+        <div class="text-[11px] space-y-1.5 font-mono text-slate-300">
+          <div class="flex justify-between"><span>Prometheus:</span> <span class="text-emerald-400">Connected 🟢</span></div>
+          <div class="flex justify-between"><span>Loki Logs:</span> <span class="text-emerald-400">Connected 🟢</span></div>
+          <div class="flex justify-between"><span>Pyroscope:</span> <span class="text-emerald-400">Connected 🟢</span></div>
+          <div class="flex justify-between"><span>MCP Protocol:</span> <span class="text-cyan-400">JSON-RPC Ready</span></div>
+        </div>
+      </div>
+
+    </aside>
+
+    <!-- CENTER COLUMN: STORYBOARD & ACTION TIMELINE (6 Cols) -->
+    <section class="lg:col-span-6 space-y-4 flex flex-col">
+      
+      <!-- Storyboard Deck (Scenes 1-3) -->
+      <div class="bg-studio-900 border border-slate-800 rounded-xl p-4">
+        <div class="flex items-center justify-between mb-3">
+          <span class="text-xs font-mono text-slate-400 uppercase tracking-wider flex items-center gap-1.5">
+            <i data-lucide="film" class="w-3.5 h-3.5 text-amber-400"></i>
+            Production Storyboard (分镜剧本)
+          </span>
+          <span id="mission-title" class="text-xs font-mono text-slate-400 truncate max-w-xs">Waiting for action...</span>
+        </div>
+        
+        <div id="storyboard-container" class="grid grid-cols-3 gap-2">
+          <!-- Scene cards injected via JS -->
+          <div class="p-3 bg-studio-800/40 border border-dashed border-slate-800 rounded-lg text-center text-slate-500 text-xs">
+            Scene 1: Triage
+          </div>
+          <div class="p-3 bg-studio-800/40 border border-dashed border-slate-800 rounded-lg text-center text-slate-500 text-xs">
+            Scene 2: Root Cause
+          </div>
+          <div class="p-3 bg-studio-800/40 border border-dashed border-slate-800 rounded-lg text-center text-slate-500 text-xs">
+            Scene 3: Healing
+          </div>
+        </div>
+      </div>
+
+      <!-- Real-time Action Timeline -->
+      <div class="bg-studio-900 border border-slate-800 rounded-xl p-4 flex-1 flex flex-col min-h-[420px]">
+        <div class="flex items-center justify-between border-b border-slate-800 pb-2 mb-3">
+          <span class="text-xs font-mono text-slate-400 uppercase tracking-wider flex items-center gap-1.5">
+            <i data-lucide="activity" class="w-3.5 h-3.5 text-cyan-400"></i>
+            Live Action Timeline (实时场记流)
+          </span>
+          <span id="event-counter" class="text-[11px] font-mono text-slate-500">0 events</span>
+        </div>
+
+        <div id="timeline-feed" class="flex-1 overflow-y-auto space-y-3 font-mono text-xs pr-1 max-h-[480px]">
+          <!-- Injected via JS -->
+          <div class="text-slate-500 text-center py-12 flex flex-col items-center justify-center space-y-2">
+            <i data-lucide="video" class="w-8 h-8 opacity-40"></i>
+            <span>Press "ACTION! (Start Take)" to begin autonomous multi-agent production.</span>
+          </div>
+        </div>
+      </div>
+
+    </section>
+
+    <!-- RIGHT COLUMN: TELEMETRY EVIDENCE & WRAP REPORT (3 Cols) -->
+    <aside class="lg:col-span-3 space-y-4">
+      
+      <!-- Live Telemetry Chart -->
+      <div class="bg-studio-900 border border-slate-800 rounded-xl p-4 space-y-2">
+        <span class="text-xs font-mono text-slate-400 uppercase tracking-wider flex items-center gap-1.5">
+          <i data-lucide="line-chart" class="w-3.5 h-3.5 text-amber-400"></i>
+          Prometheus Error Rate Waveform
+        </span>
+        <div class="h-36 w-full relative">
+          <canvas id="telemetryChart"></canvas>
+        </div>
+      </div>
+
+      <!-- Production Wrap-up Audit Certificate -->
+      <div id="wrap-report-card" class="bg-studio-900 border border-slate-800 rounded-xl p-4 space-y-3">
+        <div class="flex items-center justify-between border-b border-slate-800 pb-2">
+          <span class="text-xs font-mono text-slate-400 uppercase tracking-wider">Production Wrap-up</span>
+          <span id="wrap-badge" class="text-[10px] font-mono px-2 py-0.5 rounded bg-slate-800 text-slate-400">STANDBY</span>
+        </div>
+        <div id="wrap-report-content" class="text-xs space-y-2 text-slate-400">
+          <p class="italic text-[11px]">Audit certificate will be generated when production completes.</p>
+        </div>
+      </div>
+
+    </aside>
+
+  </main>
+
+  <!-- JAVASCRIPT SSE CONTROLLER -->
+  <script>
+    lucide.createIcons();
+
+    // Chart.js initialization
+    const ctx = document.getElementById('telemetryChart').getContext('2d');
+    const chart = new Chart(ctx, {
+      type: 'line',
+      data: {
+        labels: ['-10m', '-8m', '-6m', '-4m', '-2m', 'NOW'],
+        datasets: [{
+          label: 'HTTP 5xx Error Rate (%)',
+          data: [0.02, 0.05, 42.1, 41.8, 12.4, 0.01],
+          borderColor: '#EF4444',
+          backgroundColor: 'rgba(239, 68, 68, 0.1)',
+          fill: true,
+          tension: 0.3,
+          borderWidth: 2
+        }]
+      },
+      options: {
+        responsive: true,
+        maintainAspectRatio: false,
+        plugins: { legend: { display: false } },
+        scales: {
+          x: { grid: { color: '#1E293B' }, ticks: { color: '#64748B', font: { size: 9 } } },
+          y: { grid: { color: '#1E293B' }, ticks: { color: '#64748B', font: { size: 9 } } }
+        }
+      }
+    });
+
+    let evtSource = null;
+    let eventCount = 0;
+
+    function resetUI() {
+      eventCount = 0;
+      document.getElementById('event-counter').innerText = '0 events';
+      document.getElementById('timeline-feed').innerHTML = '';
+      document.getElementById('wrap-badge').className = 'text-[10px] font-mono px-2 py-0.5 rounded bg-amber-500/20 text-amber-400 border border-amber-500/30';
+      document.getElementById('wrap-badge').innerText = 'SHOOTING 🔴';
+      
+      ['agent-director', 'agent-obs', 'agent-head'].forEach(id => {
+        const el = document.getElementById(id);
+        el.querySelector('.status-dot').className = 'status-dot w-2 h-2 rounded-full bg-slate-600';
+      });
+    }
+
+    function setAgentStatus(role, state) {
+      const map = {
+        'Director': 'agent-director',
+        'ObservabilityProducer': 'agent-obs',
+        'StudioHead': 'agent-head'
+      };
+      const elId = map[role];
+      if (!elId) return;
+      const dot = document.getElementById(elId).querySelector('.status-dot');
+      if (state === 'ACTIVE') {
+        dot.className = 'status-dot w-2 h-2 rounded-full bg-amber-400 live-pulse';
+      } else if (state === 'DONE') {
+        dot.className = 'status-dot w-2 h-2 rounded-full bg-emerald-400';
+      } else {
+        dot.className = 'status-dot w-2 h-2 rounded-full bg-slate-600';
+      }
+    }
+
+    async function triggerProduction() {
+      resetUI();
+      const scenario = document.getElementById('scenario-select').value;
+      const mode = document.getElementById('mode-select').value;
+
+      // Update Chart based on scenario
+      if (scenario === 'agent_observability') {
+        chart.data.datasets[0].label = 'Gemini Latency (s)';
+        chart.data.datasets[0].borderColor = '#06B6D4';
+        chart.data.datasets[0].backgroundColor = 'rgba(6, 182, 212, 0.1)';
+        chart.data.datasets[0].data = [1.2, 1.4, 3.8, 3.4, 1.8, 1.1];
+        chart.update();
+      } else {
+        chart.data.datasets[0].label = 'HTTP 5xx Error Rate (%)';
+        chart.data.datasets[0].borderColor = '#EF4444';
+        chart.data.datasets[0].backgroundColor = 'rgba(239, 68, 68, 0.1)';
+        chart.data.datasets[0].data = [0.02, 0.05, 42.1, 41.8, 12.4, 0.01];
+        chart.update();
+      }
+
+      // Connect SSE
+      if (evtSource) evtSource.close();
+      evtSource = new EventSource('/api/production/events');
+
+      evtSource.onmessage = function(e) {
+        try {
+          const event = JSON.parse(e.data);
+          handleEvent(event);
+        } catch (err) {
+          console.error("Failed to parse event:", err);
+        }
+      };
+
+      // Call API
+      await fetch('/api/production/start', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          scenario_type: scenario,
+          mode: mode,
+          interval_sec: 0.6
+        })
+      });
+    }
+
+    function handleEvent(ev) {
+      eventCount++;
+      document.getElementById('event-counter').innerText = `${eventCount} events`;
+      document.getElementById('slate-id').innerText = `#${ev.production_id || 'TAKE-01'}`;
+      if (ev.scene_number > 0) {
+        document.getElementById('slate-scene-num').innerText = `SCENE ${ev.scene_number}`;
+      }
+
+      setAgentStatus(ev.sender, 'ACTIVE');
+
+      const feed = document.getElementById('timeline-feed');
+      const item = document.createElement('div');
+      item.className = 'p-3 bg-studio-800/60 border border-slate-800 rounded-lg space-y-1.5 transition-all';
+
+      let headerBadge = `<span class="px-1.5 py-0.5 rounded text-[10px] bg-slate-700 text-slate-300 font-bold">${ev.sender}</span>`;
+      let contentHtml = '';
+
+      if (ev.event_type === 'STORYBOARD_BREAKDOWN') {
+        document.getElementById('mission-title').innerText = ev.payload.mission || 'Mission Initialized';
+        renderStoryboard(ev.payload.scenes || []);
+        contentHtml = `<div class="text-amber-400 font-bold">📋 Storyboard Breakdown: ${ev.payload.total_scenes} Scenes Planned</div>`;
+      } else if (ev.event_type === 'AGENT_THOUGHT') {
+        contentHtml = `<div class="text-slate-300 italic">💭 "${ev.payload.thought}"</div>`;
+      } else if (ev.event_type === 'MCP_TOOL_CALL') {
+        contentHtml = `
+          <div class="text-cyan-400 font-bold flex items-center gap-1">
+            <i data-lucide="wrench" class="w-3 h-3"></i>
+            <span>MCP Tool Call: [${ev.payload.tool_name}]</span>
+          </div>
+          <pre class="bg-studio-950 p-2 rounded text-[10px] text-slate-400 overflow-x-auto">${JSON.stringify(ev.payload.arguments, null, 2)}</pre>
+        `;
+      } else if (ev.event_type === 'MCP_TOOL_RESULT') {
+        contentHtml = `
+          <div class="text-emerald-400 font-semibold flex items-center gap-1">
+            <i data-lucide="check-circle" class="w-3 h-3"></i>
+            <span>MCP Result: ${ev.payload.data_summary || 'Executed'}</span>
+          </div>
+        `;
+      } else if (ev.event_type === 'SAFETY_VERDICT') {
+        contentHtml = `
+          <div class="p-2 bg-emerald-500/10 border border-emerald-500/30 rounded text-emerald-300 space-y-1">
+            <div class="font-bold flex items-center justify-between">
+              <span>🛡️ SAFETY VERDICT: ${ev.payload.decision}</span>
+              <span class="text-[10px] font-mono text-emerald-500">${ev.payload.audit_hash}</span>
+            </div>
+            <div class="text-[11px] text-slate-300">${ev.payload.justification}</div>
+          </div>
+        `;
+      } else if (ev.event_type === 'SCENE_EVIDENCE') {
+        contentHtml = `<div class="text-slate-200">🔍 Evidence: ${ev.payload.summary || JSON.stringify(ev.payload)}</div>`;
+      } else if (ev.event_type === 'PRODUCTION_WRAP') {
+        renderWrapReport(ev.payload);
+        contentHtml = `<div class="text-amber-400 font-bold text-sm">🎉 PRODUCTION WRAP! All scenes cleared and verified.</div>`;
+        setAgentStatus('Director', 'DONE');
+        setAgentStatus('ObservabilityProducer', 'DONE');
+        setAgentStatus('StudioHead', 'DONE');
+        if (evtSource) evtSource.close();
+      }
+
+      item.innerHTML = `
+        <div class="flex items-center justify-between text-[10px] text-slate-500">
+          <div>${headerBadge} <span class="ml-1 text-slate-400">${ev.scene_title || ''}</span></div>
+          <span>${ev.timestamp ? ev.timestamp.substring(11, 19) : ''}</span>
+        </div>
+        <div>${contentHtml}</div>
+      `;
+
+      feed.appendChild(item);
+      feed.scrollTop = feed.scrollHeight;
+      lucide.createIcons();
+    }
+
+    function renderStoryboard(scenes) {
+      const container = document.getElementById('storyboard-container');
+      container.innerHTML = '';
+      scenes.forEach(s => {
+        const card = document.createElement('div');
+        card.className = 'p-2.5 bg-studio-800/80 border border-amber-500/30 rounded-lg text-xs space-y-1';
+        card.innerHTML = `
+          <div class="flex justify-between items-center">
+            <span class="font-bold text-amber-400">Scene ${s.scene_number}</span>
+            <span class="text-[9px] px-1 bg-studio-900 rounded text-slate-400">${s.assigned_agent}</span>
+          </div>
+          <div class="font-semibold text-slate-200 text-[11px]">${s.title}</div>
+        `;
+        container.appendChild(card);
+      });
+    }
+
+    function renderWrapReport(report) {
+      document.getElementById('wrap-badge').className = 'text-[10px] font-mono px-2 py-0.5 rounded bg-emerald-500/20 text-emerald-400 border border-emerald-500/30';
+      document.getElementById('wrap-badge').innerText = 'WRAPPED & AUDITED ✅';
+
+      const content = document.getElementById('wrap-report-content');
+      content.innerHTML = `
+        <div class="space-y-2 text-xs font-mono">
+          <div class="bg-studio-800/60 p-2 rounded border border-slate-800">
+            <span class="text-slate-500 block">Root Cause:</span>
+            <span class="text-slate-200 font-semibold">${report.root_cause_identified}</span>
+          </div>
+          <div class="bg-studio-800/60 p-2 rounded border border-slate-800">
+            <span class="text-slate-500 block">Remediation:</span>
+            <span class="text-emerald-400 font-semibold">${report.remediation_status}</span>
+          </div>
+          <div class="bg-studio-800/60 p-2 rounded border border-slate-800">
+            <span class="text-slate-500 block">Impact:</span>
+            <span class="text-amber-400">${report.cost_and_performance_impact}</span>
+          </div>
+        </div>
+      `;
+    }
+  </script>
+</body>
+</html>

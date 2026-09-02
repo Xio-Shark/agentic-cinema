@@ -1,0 +1,179 @@
+[
+  {
+    "scene_number": 0,
+    "scene_title": "Production Kickoff",
+    "sender": "Director",
+    "event_type": "STORYBOARD_BREAKDOWN",
+    "payload": {
+      "mission": "AI Agent Fleet Meta-Observability: Token Budget & Pyroscope Latency Optimization",
+      "total_scenes": 3,
+      "scenes": [
+        {
+          "scene_number": 1,
+          "title": "Token Usage & Latency Distribution Analysis",
+          "assigned_agent": "ObservabilityProducer",
+          "objective": "Interrogate Grafana metrics for Gemini API token consumption and request latencies."
+        },
+        {
+          "scene_number": 2,
+          "title": "Profiling Flamegraph & MCP Bottleneck Inspection",
+          "assigned_agent": "ObservabilityProducer",
+          "objective": "Scan Pyroscope flamegraphs for CPU overhead in JSON-RPC serialization."
+        },
+        {
+          "scene_number": 3,
+          "title": "Prompt Optimization & Tool Caching Policy",
+          "assigned_agent": "StudioHead",
+          "objective": "Audit prompt caching and tool response cache policy to reduce costs by 60%."
+        }
+      ]
+    }
+  },
+  {
+    "scene_number": 1,
+    "scene_title": "Scene 1: Token Usage & Latency",
+    "sender": "Director",
+    "event_type": "AGENT_THOUGHT",
+    "payload": {
+      "thought": "Fleet Health Check requested. Directing Obs Producer to pull Prometheus metrics on LLM Token spend and P95 response times."
+    }
+  },
+  {
+    "scene_number": 1,
+    "scene_title": "Scene 1: Token Usage & Latency",
+    "sender": "ObservabilityProducer",
+    "event_type": "MCP_TOOL_CALL",
+    "payload": {
+      "mcp_server": "grafana-mcp",
+      "tool_name": "grafana_query_prometheus",
+      "arguments": {
+        "query": "sum(rate(gemini_token_usage_total[1h])) by (model, agent_role)",
+        "start": "now-1h"
+      },
+      "call_id": "call_token_99102"
+    }
+  },
+  {
+    "scene_number": 1,
+    "scene_title": "Scene 1: Token Usage & Latency",
+    "sender": "ObservabilityProducer",
+    "event_type": "MCP_TOOL_RESULT",
+    "payload": {
+      "call_id": "call_token_99102",
+      "status": "SUCCESS",
+      "execution_time_ms": 115,
+      "data_summary": "Telemetry shows Director Agent consumes 68.2% of total tokens (12.4k avg prompt size) with P95 latency at 3.4s."
+    }
+  },
+  {
+    "scene_number": 1,
+    "scene_title": "Scene 1: Token Usage & Latency",
+    "sender": "ObservabilityProducer",
+    "event_type": "SCENE_EVIDENCE",
+    "payload": {
+      "summary": "Identified major token hotspot in repetitive system prompts across long-running incident sessions.",
+      "key_metrics": {
+        "daily_token_burn": "4.8M tokens",
+        "avg_prompt_tokens": 12400,
+        "director_share": "68.2%"
+      }
+    }
+  },
+  {
+    "scene_number": 2,
+    "scene_title": "Scene 2: Profiling Flamegraph",
+    "sender": "Director",
+    "event_type": "AGENT_THOUGHT",
+    "payload": {
+      "thought": "Scene 1 highlighted excessive overhead. Querying Pyroscope continuous profiling to inspect serialization bottlenecks."
+    }
+  },
+  {
+    "scene_number": 2,
+    "scene_title": "Scene 2: Profiling Flamegraph",
+    "sender": "ObservabilityProducer",
+    "event_type": "MCP_TOOL_CALL",
+    "payload": {
+      "mcp_server": "grafana-mcp",
+      "tool_name": "grafana_query_pyroscope",
+      "arguments": {
+        "service_name": "cineops-agent-fleet"
+      },
+      "call_id": "call_pyro_44180"
+    }
+  },
+  {
+    "scene_number": 2,
+    "scene_title": "Scene 2: Profiling Flamegraph",
+    "sender": "ObservabilityProducer",
+    "event_type": "MCP_TOOL_RESULT",
+    "payload": {
+      "call_id": "call_pyro_44180",
+      "status": "SUCCESS",
+      "execution_time_ms": 189,
+      "data_summary": "Flamegraph confirms 38.4% CPU time spent in JSON-RPC serialization and 24.1% in repetitive SSL handshakes."
+    }
+  },
+  {
+    "scene_number": 2,
+    "scene_title": "Scene 2: Profiling Flamegraph",
+    "sender": "ObservabilityProducer",
+    "event_type": "SCENE_EVIDENCE",
+    "payload": {
+      "summary": "CPU profiling isolated major computational waste in unpooled HTTP connections and uncompressed JSON payloads.",
+      "flamegraph_top": [
+        { "symbol": "json_rpc.serialize", "cpu": "38.4%" },
+        { "symbol": "http_client.ssl_handshake", "cpu": "24.1%" }
+      ]
+    }
+  },
+  {
+    "scene_number": 3,
+    "scene_title": "Scene 3: Optimization & Caching Policy",
+    "sender": "Director",
+    "event_type": "AGENT_THOUGHT",
+    "payload": {
+      "thought": "Formulating optimization plan: Enable Gemini Context Caching + Keep-Alive Connection Pool + MCP query cache."
+    }
+  },
+  {
+    "scene_number": 3,
+    "scene_title": "Scene 3: Optimization & Caching Policy",
+    "sender": "StudioHead",
+    "event_type": "SAFETY_VERDICT",
+    "payload": {
+      "action_proposed": "Deploy Gemini Context Caching + HTTP Keep-Alive Connection Pooling",
+      "decision": "APPROVED",
+      "blast_radius": "LOW",
+      "justification": "Optimization introduces zero behavioral drift while cutting prompt token consumption by 62.4% and reducing P95 latency from 3.4s to 1.1s.",
+      "audit_hash": "sha256:b891a2e4c089ff"
+    }
+  },
+  {
+    "scene_number": 3,
+    "scene_title": "Scene 3: Optimization & Caching Policy",
+    "sender": "StudioHead",
+    "event_type": "SCENE_EVIDENCE",
+    "payload": {
+      "status": "POLICY_APPLIED",
+      "projected_cost_reduction": "62.4%",
+      "projected_latency_gain": "3.1x faster"
+    }
+  },
+  {
+    "scene_number": 3,
+    "scene_title": "Production Wrap",
+    "sender": "Director",
+    "event_type": "PRODUCTION_WRAP",
+    "payload": {
+      "production_id": "PROD-GOLDEN-02",
+      "mission": "AI Agent Fleet Meta-Observability: Token Budget & Pyroscope Latency Optimization",
+      "duration_seconds": 19.8,
+      "total_scenes_completed": 3,
+      "root_cause_identified": "Uncached prompt prefixes and redundant JSON-RPC serialization causing elevated token costs and latency.",
+      "remediation_status": "SUCCESS: Applied context caching and tool result memoization.",
+      "telemetry_evidence_summary": "Corroborated with Grafana Pyroscope flamegraphs and Prometheus token metrics.",
+      "cost_and_performance_impact": "Projected annual savings of $34,200 in LLM API expenses; latency improved by 3.1x."
+    }
+  }
+]

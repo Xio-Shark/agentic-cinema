@@ -1,0 +1,177 @@
+[
+  {
+    "scene_number": 0,
+    "scene_title": "Production Kickoff",
+    "sender": "Director",
+    "event_type": "STORYBOARD_BREAKDOWN",
+    "payload": {
+      "mission": "Payment Gateway P0 Outage: 500 Error Spike Investigation & Autonomous Healing",
+      "total_scenes": 3,
+      "scenes": [
+        {
+          "scene_number": 1,
+          "title": "Anomaly Triage & Prometheus Metrics Scan",
+          "assigned_agent": "ObservabilityProducer",
+          "objective": "Query Prometheus for HTTP 500 spike and latency surge across payment-api instances."
+        },
+        {
+          "scene_number": 2,
+          "title": "Deep Stacktrace Hunting via Loki Logs",
+          "assigned_agent": "ObservabilityProducer",
+          "objective": "Scan error logs in Loki to isolate precise fatal exception and blocked threads."
+        },
+        {
+          "scene_number": 3,
+          "title": "Blast Radius Audit & Self-Healing",
+          "assigned_agent": "StudioHead",
+          "objective": "Evaluate pool expansion blast radius and authorize dynamic pool resizing."
+        }
+      ]
+    }
+  },
+  {
+    "scene_number": 1,
+    "scene_title": "Scene 1: Anomaly Triage",
+    "sender": "Director",
+    "event_type": "AGENT_THOUGHT",
+    "payload": {
+      "thought": "P0 Alert triggered. Dispatching Observability Producer to interrogate Grafana Cloud Prometheus datasource for 5xx error rate."
+    }
+  },
+  {
+    "scene_number": 1,
+    "scene_title": "Scene 1: Anomaly Triage",
+    "sender": "ObservabilityProducer",
+    "event_type": "MCP_TOOL_CALL",
+    "payload": {
+      "mcp_server": "grafana-mcp",
+      "tool_name": "grafana_query_prometheus",
+      "arguments": {
+        "query": "sum(rate(http_requests_total{status=~'5..'}[5m]))",
+        "start": "now-15m"
+      },
+      "call_id": "call_prom_89412"
+    }
+  },
+  {
+    "scene_number": 1,
+    "scene_title": "Scene 1: Anomaly Triage",
+    "sender": "ObservabilityProducer",
+    "event_type": "MCP_TOOL_RESULT",
+    "payload": {
+      "call_id": "call_prom_89412",
+      "status": "SUCCESS",
+      "execution_time_ms": 138,
+      "data_summary": "PromQL confirmed acute 500 error spike: error rate surged from 0.02% to 42.1%."
+    }
+  },
+  {
+    "scene_number": 1,
+    "scene_title": "Scene 1: Anomaly Triage",
+    "sender": "ObservabilityProducer",
+    "event_type": "SCENE_EVIDENCE",
+    "payload": {
+      "summary": "Prometheus confirms acute 500 spike across all 8 payment-api pods. Throughput dropped by 78%.",
+      "key_metrics": {
+        "error_rate_peak": "42.1%",
+        "p99_latency_ms": 4210,
+        "impacted_service": "payment-api"
+      }
+    }
+  },
+  {
+    "scene_number": 2,
+    "scene_title": "Scene 2: Root Cause Hunting",
+    "sender": "Director",
+    "event_type": "AGENT_THOUGHT",
+    "payload": {
+      "thought": "Scene 1 confirmed system distress. Requesting Observability Producer to inspect Loki logs for raw stacktrace."
+    }
+  },
+  {
+    "scene_number": 2,
+    "scene_title": "Scene 2: Root Cause Hunting",
+    "sender": "ObservabilityProducer",
+    "event_type": "MCP_TOOL_CALL",
+    "payload": {
+      "mcp_server": "grafana-mcp",
+      "tool_name": "grafana_query_loki",
+      "arguments": {
+        "query": "{service='payment-api'} |= 'ERROR' | json",
+        "limit": 20
+      },
+      "call_id": "call_loki_77189"
+    }
+  },
+  {
+    "scene_number": 2,
+    "scene_title": "Scene 2: Root Cause Hunting",
+    "sender": "ObservabilityProducer",
+    "event_type": "MCP_TOOL_RESULT",
+    "payload": {
+      "call_id": "call_loki_77189",
+      "status": "SUCCESS",
+      "execution_time_ms": 172,
+      "data_summary": "Loki extracted 34 stacktraces: DBConnectionPoolTimeout: connection pool exhausted (size=20, active=20, waiters=142)."
+    }
+  },
+  {
+    "scene_number": 2,
+    "scene_title": "Scene 2: Root Cause Hunting",
+    "sender": "ObservabilityProducer",
+    "event_type": "SCENE_EVIDENCE",
+    "payload": {
+      "summary": "Root cause pinpointed: Backend Postgres connection pool saturated under Black Friday traffic surge.",
+      "stacktrace": "ERROR [payment.db] DBConnectionPoolTimeout: connection pool exhausted (size=20, active=20, waiters=142)"
+    }
+  },
+  {
+    "scene_number": 3,
+    "scene_title": "Scene 3: Safety Audit & Self-Healing",
+    "sender": "Director",
+    "event_type": "AGENT_THOUGHT",
+    "payload": {
+      "thought": "Root cause isolated. Formulating remediation proposal: Dynamic pool scale-up from 20 to 100. Submitting to Studio Head for safety audit."
+    }
+  },
+  {
+    "scene_number": 3,
+    "scene_title": "Scene 3: Safety Audit & Self-Healing",
+    "sender": "StudioHead",
+    "event_type": "SAFETY_VERDICT",
+    "payload": {
+      "action_proposed": "Dynamic DB Connection Pool Scale Up (20 -> 100) & Non-blocking Worker Reload",
+      "decision": "APPROVED",
+      "blast_radius": "LOW",
+      "justification": "Target deployment is stateless. Scaling pool requires zero downtime and will immediately alleviate DB waiter queues.",
+      "audit_hash": "sha256:7f83b16521e09c"
+    }
+  },
+  {
+    "scene_number": 3,
+    "scene_title": "Scene 3: Safety Audit & Self-Healing",
+    "sender": "StudioHead",
+    "event_type": "SCENE_EVIDENCE",
+    "payload": {
+      "status": "EXECUTED",
+      "action": "Dynamic DB Connection Pool Scale Up (20 -> 100)",
+      "system_state_post_healing": "HEALTHY (Error Rate: 0.01%, P99 Latency: 48ms, Active Connections: 48/100)"
+    }
+  },
+  {
+    "scene_number": 3,
+    "scene_title": "Production Wrap",
+    "sender": "Director",
+    "event_type": "PRODUCTION_WRAP",
+    "payload": {
+      "production_id": "PROD-GOLDEN-01",
+      "mission": "Payment Gateway P0 Outage: 500 Error Spike Investigation & Autonomous Healing",
+      "duration_seconds": 28.4,
+      "total_scenes_completed": 3,
+      "root_cause_identified": "Database connection pool exhausted (size=20/20 active) causing 42% HTTP 500 spike.",
+      "remediation_status": "SUCCESS: Pool dynamically scaled to 100 with zero downtime. Error rate dropped to 0.01%.",
+      "telemetry_evidence_summary": "Corroborated across Prometheus metrics and Loki log traces via Grafana MCP.",
+      "cost_and_performance_impact": "Estimated savings of $18,400 in prevented transaction dropouts; P99 latency recovered from 4210ms to 48ms."
+    }
+  }
+]
