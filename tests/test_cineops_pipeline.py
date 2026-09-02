@@ -92,6 +92,25 @@ async def test_orchestrator_live_pipeline():
 
 
 @pytest.mark.asyncio
+async def test_orchestrator_live_agent_observability_pipeline():
+    """Verify end-to-end live pipeline for AI Agent Fleet Observability scenario."""
+    bus = EventBus()
+    orch = CineOpsOrchestrator(bus=bus)
+    prod_id = await orch.run_live_production(
+        "AI Agent Fleet Meta-Observability: Token Budget & Latency",
+        scenario_type="agent_observability",
+    )
+    assert prod_id.startswith("PROD-")
+    history = bus.get_history()
+    assert len(history) >= 10
+    event_types = [e.event_type for e in history]
+    assert EventType.STORYBOARD_BREAKDOWN in event_types
+    assert EventType.MCP_TOOL_CALL in event_types
+    assert EventType.SAFETY_VERDICT in event_types
+    assert EventType.PRODUCTION_WRAP in event_types
+
+
+@pytest.mark.asyncio
 async def test_orchestrator_replay_mode():
     """Verify deterministic replay streaming from golden scenarios."""
     bus = EventBus()

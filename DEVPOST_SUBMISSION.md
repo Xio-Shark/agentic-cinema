@@ -38,7 +38,7 @@ Inspired by the hackathon theme **"Agentic Cinema"**, we asked: *What if enterpr
 - **LLM & Multi-Agent Core**: Powered by **Google Gemini 2.5 Pro & Flash** with structured JSON output and intelligent multi-model fallback.
 - **Tool Protocol**: Implemented a standard **Model Context Protocol (MCP)** client interfacing with **Grafana Cloud** datasources (Prometheus, Loki, Tempo, Pyroscope).
 - **Backend Glue Layer**: High-performance **FastAPI** service with an asynchronous Pub/Sub Event Bus broadcasting Server-Sent Events (SSE).
-- **Frontend Presentation**: Custom **Cyber-Cinema Dark Console** built with React & Tailwind CSS, featuring typewriter animations, agent status heartbeat LEDs, and Chart.js telemetry waveforms.
+- **Frontend Presentation**: Custom **Cyber-Cinema Dark Console** built with modern zero-build Web standards (Vanilla HTML5, Tailwind CSS, Lucide Icons, and Chart.js), featuring typewriter animations, agent status heartbeat LEDs, and real-time telemetry waveforms without complex build overhead.
 - **Deterministic Replay Engine**: Built-in dual-mode architecture supporting both live API streaming and pre-recorded golden scenarios for 100% reliable demonstrations.
 
 ---
@@ -64,4 +64,4 @@ Inspired by the hackathon theme **"Agentic Cinema"**, we asked: *What if enterpr
 ---
 
 ## 🏷️ Built With Tags
-`google-cloud`, `gemini-enterprise`, `grafana-labs`, `model-context-protocol`, `mcp`, `python`, `fastapi`, `react`, `tailwind-css`, `prometheus`, `loki`, `pyroscope`, `devops`, `observability`, `multi-agent`
+`google-cloud`, `gemini-enterprise`, `grafana-labs`, `model-context-protocol`, `mcp`, `python`, `fastapi`, `tailwind-css`, `chart-js`, `prometheus`, `loki`, `pyroscope`, `devops`, `observability`, `multi-agent`

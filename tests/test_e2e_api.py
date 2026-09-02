@@ -50,6 +50,18 @@ def test_api_production_start_and_clear(client):
     assert r_clear.status_code == 200
     assert r_clear.json()["status"] == "CLEARED"
 
+    # Test agent_observability scenario start
+    r_obs = client.post(
+        "/api/production/start",
+        json={
+            "scenario_type": "agent_observability",
+            "mode": "replay",
+            "interval_sec": 0.01,
+        },
+    )
+    assert r_obs.status_code == 200
+    assert r_obs.json()["scenario_type"] == "agent_observability"
+
 
 def test_static_web_console_serving(client):
     """Verify the web console HTML is served properly."""

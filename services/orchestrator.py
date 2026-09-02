@@ -72,32 +72,59 @@ class CineOpsOrchestrator:
 
         evidences: List[Dict[str, Any]] = []
 
-        # Scene 1: Metrics investigation
-        await self._emit(production_id, 1, "Scene 1: Anomaly Triage", AgentRole.DIRECTOR, EventType.AGENT_THOUGHT, {"thought": "P0 Alert detected. Requesting Grafana Prometheus telemetry to isolate error spike."})
-        await self._emit(production_id, 1, "Scene 1: Anomaly Triage", AgentRole.OBS_PRODUCER, EventType.MCP_TOOL_CALL, {"mcp_server": "grafana-mcp", "tool_name": "grafana_query_prometheus", "arguments": {"query": "sum(rate(http_requests_total{status=~'5..'}[5m]))", "start": "now-15m"}})
-        
-        m_res = self.obs_producer.execute_metrics_investigation("sum(rate(http_requests_total{status=~'5..'}[5m]))")
-        await self._emit(production_id, 1, "Scene 1: Anomaly Triage", AgentRole.OBS_PRODUCER, EventType.MCP_TOOL_RESULT, m_res["tool_result"])
-        await self._emit(production_id, 1, "Scene 1: Anomaly Triage", AgentRole.OBS_PRODUCER, EventType.SCENE_EVIDENCE, {"summary": m_res["evidence_summary"], "key_metrics": m_res["key_metrics"]})
-        evidences.append(m_res)
+        if scenario_type == "agent_observability":
+            # Scene 1: Token consumption & P95 latency metrics
+            await self._emit(production_id, 1, "Scene 1: Token Usage & Latency Distribution", AgentRole.DIRECTOR, EventType.AGENT_THOUGHT, {"thought": "Fleet Health Check requested. Directing Obs Producer to pull Prometheus metrics on LLM Token spend and P95 response times."})
+            promql = "sum(rate(gemini_token_usage_total[1h])) by (model, agent_role)"
+            await self._emit(production_id, 1, "Scene 1: Token Usage & Latency Distribution", AgentRole.OBS_PRODUCER, EventType.MCP_TOOL_CALL, {"mcp_server": "grafana-mcp", "tool_name": "grafana_query_prometheus", "arguments": {"query": promql, "start": "now-1h"}})
+            m_res = self.obs_producer.execute_metrics_investigation(promql)
+            await self._emit(production_id, 1, "Scene 1: Token Usage & Latency Distribution", AgentRole.OBS_PRODUCER, EventType.MCP_TOOL_RESULT, m_res["tool_result"])
+            await self._emit(production_id, 1, "Scene 1: Token Usage & Latency Distribution", AgentRole.OBS_PRODUCER, EventType.SCENE_EVIDENCE, {"summary": m_res["evidence_summary"], "key_metrics": m_res["key_metrics"]})
+            evidences.append(m_res)
 
-        # Scene 2: Log investigation
-        await self._emit(production_id, 2, "Scene 2: Root Cause Hunting", AgentRole.DIRECTOR, EventType.AGENT_THOUGHT, {"thought": "Prometheus confirms 42% 5xx spike. Dispatching ObsProducer to scan Loki error stacktraces."})
-        await self._emit(production_id, 2, "Scene 2: Root Cause Hunting", AgentRole.OBS_PRODUCER, EventType.MCP_TOOL_CALL, {"mcp_server": "grafana-mcp", "tool_name": "grafana_query_loki", "arguments": {"query": "{service='payment-api'} |= 'ERROR'", "limit": 20}})
-        
-        l_res = self.obs_producer.execute_logs_investigation("{service='payment-api'} |= 'ERROR'")
-        await self._emit(production_id, 2, "Scene 2: Root Cause Hunting", AgentRole.OBS_PRODUCER, EventType.MCP_TOOL_RESULT, l_res["tool_result"])
-        await self._emit(production_id, 2, "Scene 2: Root Cause Hunting", AgentRole.OBS_PRODUCER, EventType.SCENE_EVIDENCE, {"summary": l_res["evidence_summary"], "stacktrace": l_res["stacktrace_sample"]})
-        evidences.append(l_res)
+            # Scene 2: Flamegraph & CPU profile analysis
+            await self._emit(production_id, 2, "Scene 2: Profiling Flamegraph & MCP Inspection", AgentRole.DIRECTOR, EventType.AGENT_THOUGHT, {"thought": "Token consumption confirmed at 124.5k/min with 3820ms latency. Dispatching ObsProducer to examine Pyroscope CPU flamegraph profiling."})
+            target_svc = "agentic-fleet-orchestrator"
+            await self._emit(production_id, 2, "Scene 2: Profiling Flamegraph & MCP Inspection", AgentRole.OBS_PRODUCER, EventType.MCP_TOOL_CALL, {"mcp_server": "grafana-mcp", "tool_name": "grafana_query_pyroscope", "arguments": {"service_name": target_svc}})
+            p_res = self.obs_producer.execute_profile_investigation(target_svc)
+            await self._emit(production_id, 2, "Scene 2: Profiling Flamegraph & MCP Inspection", AgentRole.OBS_PRODUCER, EventType.MCP_TOOL_RESULT, p_res["tool_result"])
+            await self._emit(production_id, 2, "Scene 2: Profiling Flamegraph & MCP Inspection", AgentRole.OBS_PRODUCER, EventType.SCENE_EVIDENCE, {"summary": p_res["evidence_summary"], "bottlenecks": p_res.get("bottlenecks", [])})
+            evidences.append(p_res)
 
-        # Scene 3: Safety audit & auto-healing
-        await self._emit(production_id, 3, "Scene 3: Safety Audit & Self-Healing", AgentRole.DIRECTOR, EventType.AGENT_THOUGHT, {"thought": "Root cause identified as DB pool exhaustion. Proposing pool expansion from 20 to 100."})
-        verdict = self.studio_head.audit_remediation("Scale DB Connection Pool 20 -> 100", "DBConnectionPoolTimeout")
-        await self._emit(production_id, 3, "Scene 3: Safety Audit & Self-Healing", AgentRole.STUDIO_HEAD, EventType.SAFETY_VERDICT, verdict.model_dump())
-        
-        healing_res = self.studio_head.execute_self_healing(verdict)
-        await self._emit(production_id, 3, "Scene 3: Safety Audit & Self-Healing", AgentRole.STUDIO_HEAD, EventType.SCENE_EVIDENCE, healing_res)
-        evidences.append(healing_res)
+            # Scene 3: Safety audit & caching enforcement
+            await self._emit(production_id, 3, "Scene 3: Prompt Optimization & Tool Caching Policy", AgentRole.DIRECTOR, EventType.AGENT_THOUGHT, {"thought": "Bottleneck localized to uncompressed prompts and unpooled MCP calls. Submitting dynamic prompt caching policy to Studio Head for IAM blast radius review."})
+            verdict = self.studio_head.audit_remediation("Enforce Dynamic Prompt Caching & MCP Connection Pooling", "HighTokenBurnAndJSONSerializationOverhead")
+            await self._emit(production_id, 3, "Scene 3: Prompt Optimization & Tool Caching Policy", AgentRole.STUDIO_HEAD, EventType.SAFETY_VERDICT, verdict.model_dump())
+            healing_res = self.studio_head.execute_self_healing(verdict)
+            await self._emit(production_id, 3, "Scene 3: Prompt Optimization & Tool Caching Policy", AgentRole.STUDIO_HEAD, EventType.SCENE_EVIDENCE, healing_res)
+            evidences.append(healing_res)
+        else:
+            # Scene 1: Metrics investigation
+            await self._emit(production_id, 1, "Scene 1: Anomaly Triage", AgentRole.DIRECTOR, EventType.AGENT_THOUGHT, {"thought": "P0 Alert detected. Requesting Grafana Prometheus telemetry to isolate error spike."})
+            await self._emit(production_id, 1, "Scene 1: Anomaly Triage", AgentRole.OBS_PRODUCER, EventType.MCP_TOOL_CALL, {"mcp_server": "grafana-mcp", "tool_name": "grafana_query_prometheus", "arguments": {"query": "sum(rate(http_requests_total{status=~'5..'}[5m]))", "start": "now-15m"}})
+            
+            m_res = self.obs_producer.execute_metrics_investigation("sum(rate(http_requests_total{status=~'5..'}[5m]))")
+            await self._emit(production_id, 1, "Scene 1: Anomaly Triage", AgentRole.OBS_PRODUCER, EventType.MCP_TOOL_RESULT, m_res["tool_result"])
+            await self._emit(production_id, 1, "Scene 1: Anomaly Triage", AgentRole.OBS_PRODUCER, EventType.SCENE_EVIDENCE, {"summary": m_res["evidence_summary"], "key_metrics": m_res["key_metrics"]})
+            evidences.append(m_res)
+
+            # Scene 2: Log investigation
+            await self._emit(production_id, 2, "Scene 2: Root Cause Hunting", AgentRole.DIRECTOR, EventType.AGENT_THOUGHT, {"thought": "Prometheus confirms 42% 5xx spike. Dispatching ObsProducer to scan Loki error stacktraces."})
+            await self._emit(production_id, 2, "Scene 2: Root Cause Hunting", AgentRole.OBS_PRODUCER, EventType.MCP_TOOL_CALL, {"mcp_server": "grafana-mcp", "tool_name": "grafana_query_loki", "arguments": {"query": "{service='payment-api'} |= 'ERROR'", "limit": 20}})
+            
+            l_res = self.obs_producer.execute_logs_investigation("{service='payment-api'} |= 'ERROR'")
+            await self._emit(production_id, 2, "Scene 2: Root Cause Hunting", AgentRole.OBS_PRODUCER, EventType.MCP_TOOL_RESULT, l_res["tool_result"])
+            await self._emit(production_id, 2, "Scene 2: Root Cause Hunting", AgentRole.OBS_PRODUCER, EventType.SCENE_EVIDENCE, {"summary": l_res["evidence_summary"], "stacktrace": l_res["stacktrace_sample"]})
+            evidences.append(l_res)
+
+            # Scene 3: Safety audit & auto-healing
+            await self._emit(production_id, 3, "Scene 3: Safety Audit & Self-Healing", AgentRole.DIRECTOR, EventType.AGENT_THOUGHT, {"thought": "Root cause identified as DB pool exhaustion. Proposing pool expansion from 20 to 100."})
+            verdict = self.studio_head.audit_remediation("Scale DB Connection Pool 20 -> 100", "DBConnectionPoolTimeout")
+            await self._emit(production_id, 3, "Scene 3: Safety Audit & Self-Healing", AgentRole.STUDIO_HEAD, EventType.SAFETY_VERDICT, verdict.model_dump())
+            
+            healing_res = self.studio_head.execute_self_healing(verdict)
+            await self._emit(production_id, 3, "Scene 3: Safety Audit & Self-Healing", AgentRole.STUDIO_HEAD, EventType.SCENE_EVIDENCE, healing_res)
+            evidences.append(healing_res)
 
         # Final Wrap: Wrap-up report
         elapsed = time.time() - start_time
